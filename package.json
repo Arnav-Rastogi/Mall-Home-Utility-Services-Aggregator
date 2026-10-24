@@ -1,0 +1,8 @@
+{
+  "name": "utilityconnect",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["server", "client"],
+  "scripts": {"dev": "concurrently -n api,web -c blue,green \"npm:dev --workspace server\" \"npm:dev --workspace client\"", "build": "npm run build --workspace client", "test": "npm test --workspace server", "seed": "npm run seed --workspace server"},
+  "devDependencies": {"concurrently": "^9.1.2"}
+}
