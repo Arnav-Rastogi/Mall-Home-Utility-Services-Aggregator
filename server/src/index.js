@@ -3,7 +3,7 @@ import express from 'express'; import mongoose from 'mongoose'; import bcrypt fr
 import {User,Category,Provider,Service,Booking,Review,Notification,Dispute} from './models.js';
 import {canTransition,bookingDateIsValid,isOverlapping,getAvailableSlots,getOpenDates,isWithinWorkingHours,wallTimeToDate,zonedParts} from './rules.js';
 const required=['MONGODB_URI','JWT_SECRET','CLIENT_URL']; for(const key of required) if(!process.env[key]) throw new Error(`Missing required environment variable: ${key}`);
-const app=express(); app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL,credentials:true})); app.use(express.json({limit:'1mb'})); app.use(cookieParser()); app.use('/api/',rateLimit({windowMs:15*60*1000,limit:300,standardHeaders:true,legacyHeaders:false}));
+const app=express(); app.set('trust proxy',1); app.use(helmet()); app.use(cors({origin:process.env.CLIENT_URL,credentials:true})); app.use(express.json({limit:'1mb'})); app.use(cookieParser()); app.use('/api/',rateLimit({windowMs:15*60*1000,limit:300,standardHeaders:true,legacyHeaders:false}));
 const cookieOptions={httpOnly:true,sameSite:'lax',secure:process.env.COOKIE_SECURE==='true',maxAge:7*24*60*60*1000};
 const tokenFor=u=>jwt.sign({sub:u._id.toString(),role:u.role},process.env.JWT_SECRET,{expiresIn:'7d'});
 const auth=async(req,res,next)=>{try{const token=req.cookies.uc_session||req.headers.authorization?.replace(/^Bearer /,''); if(!token)return res.status(401).json({error:'Sign in required'}); const payload=jwt.verify(token,process.env.JWT_SECRET); const user=await User.findById(payload.sub); if(!user||user.status==='suspended')return res.status(401).json({error:'Session is invalid'}); req.user=user;next()}catch{return res.status(401).json({error:'Session is invalid or expired'})}};
